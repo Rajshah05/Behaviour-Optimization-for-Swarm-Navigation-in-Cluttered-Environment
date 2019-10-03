@@ -8,6 +8,7 @@ function [u] = controller(r,v)
     
     % Potential function:
     
+    
     % Control law:
     u = zeros(num_agents,2);
     kp_v = .1;

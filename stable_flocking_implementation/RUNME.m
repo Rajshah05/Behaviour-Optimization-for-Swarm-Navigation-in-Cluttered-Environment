@@ -47,7 +47,25 @@ for ii = 1:L-1
     u(:,ii+1) = reshape(u_vec',[],1);
 end
 
-% Plot the results:
+% Create flock animation:
+% figure()
+%     % Initialize the animation:
+%     for ii = 1:2:2*num_agents
+%         agents(ii) = plot(r(ii,1),r(ii+1,1),'.','MarkerSize',20); hold on
+% %         controller(ii)
+%     end
+%     for ii = 1:L
+%         % Add track history:
+%         r_vec = reshape(r(:,ii)',2,[])';
+%         plot(r_vec(:,1),r_vec(:,2),'.','color',[.5 .5 .5],'MarkerSize',15); hold on
+%         
+%         xlim([-100 100])
+%         ylim([-100 100])
+%         drawnow
+%         pause(.1)
+%     end
+
+% Plot summary of the results:
 figure()
     subplot(2,3,1)
         for ii = 1:2:2*num_agents
