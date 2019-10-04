@@ -6,6 +6,7 @@ rng(1); %(random seed for repeatability)
 
 %% Settings:
 % Basic Simulation Settings:
+write_to_video = true;
 dt = 1;
 tspan = 0:dt:300;
 WIDTH = 150; %(half width of the field)
@@ -76,8 +77,13 @@ for ii = 1:L-1
     u(:,ii+1) = reshape(u_vec',[],1);
 end
 
-
 %% Create flock animation:
+if write_to_video
+    
+   vid = VideoWriter('flock_animation.avi','Uncompressed AVI'); 
+   open(vid)
+end
+
 figure(1)
     % Initialize the animation:
     jj = 1;
@@ -96,7 +102,7 @@ figure(1)
     legend([virtual_leader, agents(1),obstacles(1)],...
            'Virtual Leader','Agents','Obstacles',...
            'location','northwest')
-    
+
     % Actuall show the animation:
     for ii = 1:L
         % Add track history:
@@ -109,5 +115,13 @@ figure(1)
         xlim([-WIDTH/2 1.5*WIDTH])
         ylim([-WIDTH/2 1.5*WIDTH])
         drawnow
-        pause(.01)
+        if write_to_video
+            frame = getframe(gcf);
+            writeVideo(vid,frame);
+        else
+            pause(.01)
+        end
+    end
+    if write_to_video
+        close(vid)
     end

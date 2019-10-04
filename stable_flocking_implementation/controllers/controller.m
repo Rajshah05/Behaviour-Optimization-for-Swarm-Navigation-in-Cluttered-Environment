@@ -26,7 +26,6 @@ function [u] = controller(r,v,vl,obs,d0,d_react,k_ria,k_via,k_rvl,k_vvl,k_obs)
         e_rvl = vl_dirs(ii,:)*vl_dx(ii);
         e_vvl = sum(v_vec(ii,:) - vl(3:4),1);
         
-        
         % Apply gains:
         u(ii,:) = k_ria*e_ria -k_via*e_via -k_rvl*e_rvl -k_vvl*e_vvl + k_obs*e_robs;
                   
