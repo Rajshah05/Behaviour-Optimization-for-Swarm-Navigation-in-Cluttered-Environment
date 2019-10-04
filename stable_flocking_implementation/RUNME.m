@@ -2,23 +2,37 @@ clear; matlabrc; clc; close all;
 addpath(genpath('controllers'))
 addpath(genpath('dynamics'))
 addpath(genpath('tools'))
+rng(1); %(random seed for repeatability)
 
-% Time settings:
+%% Settings:
+% Basic Simulation Settings:
 dt = 1;
-duration = 600;
-tspan = 0:dt:duration;
+tspan = 0:dt:300;
+WIDTH = 150; %(half width of the field)
 
-% Agent definitions:
+% Number of agents/obstacles to simulate:
 num_agents = 6;
+num_obstacles = 10;
 
-% Virtual leader:
-vl = [-30 30 .25 -.75]; %(rx,ry,vx,vy)
-d0 = 20;
+% Virtaul leader (position and velocity):
+vl = [-70 -50 1 1]; %(rx,ry,vx,vy)
 
-% Obstacles:
-num_obs = 1;
-obs = [30 20 10];
+% Distance settings:
+d0 = 20; % Desired distance from virtual leader
+d_react_obsr = 1.5; %Reaction distance (in terms of obstacle radius)
 
+% Agent limitations:
+max_v = 5; %(Max velocity allowed)
+max_u = 1; %(Max acceleration allowed)
+
+% Control gains:
+k_ria = 20;  %(inter-agent position)
+k_via = .1;  %(inter-agent velocities)
+k_rvl = .25; %(virtual-leader position)
+k_vvl = .5;  %(virtual-leader velocity)
+k_obs = 5;   %(obstacle position)
+
+%% Initialization:
 % Memory allocation:
 L = length(tspan);
 u = zeros(2*num_agents,L);
@@ -26,14 +40,17 @@ r = zeros(2*num_agents,L);
 v = zeros(2*num_agents,L);
 vl_rv = zeros(4,L);
 
-% Initial conditions
+% Randomly place obstacles:
+obs = [WIDTH*rand(num_obstacles,1) WIDTH*rand(num_obstacles,1), 5*rand(num_obstacles,1)+5];
+d_react = d_react_obsr*obs(:,3); % react distance defined off of obstacle size
+
+% Randomly place the agents:
 r(:,1) = 20*randn(2*num_agents,1);
 v(:,1) = 1*randn(2*num_agents,1);
 vl_rv(:,1) = vl';
 
-max_v = 5;
-max_u = 1;
 
+%% Run Simulation Loop:
 for ii = 1:L-1
     % Propagate the dynamics:
     X_out = RK4(@equations_of_motion,dt,[r(:,ii);v(:,ii)],u(:,ii));
@@ -42,7 +59,8 @@ for ii = 1:L-1
     vl_rv(:,ii+1) = RK4(@equations_of_motion,dt,vl_rv(:,ii),[0;0]);
     
     % Calculate the control:
-    u(:,ii+1) = controller(r(:,ii+1),v(:,ii+1),vl_rv(:,ii+1)',d0);
+    u(:,ii+1) = controller(r(:,ii+1),v(:,ii+1),vl_rv(:,ii+1)',obs,d0,d_react,...
+                           k_ria,k_via,k_rvl,k_vvl,k_obs);
     
     % Apply limitations on control input:
     u_vec = reshape(u(:,ii+1)',2,[])';
@@ -58,13 +76,14 @@ for ii = 1:L-1
     u(:,ii+1) = reshape(u_vec',[],1);
 end
 
-% Create flock animation:
-figure()
+
+%% Create flock animation:
+figure(1)
     % Initialize the animation:
     jj = 1;
     virtual_leader = plot(vl_rv(1,1),vl_rv(2,1),'sr','MarkerSize',10,'MarkerFaceColor','r'); hold on
-    obstacles = gobjects(num_obs,1);
-    for ii = 1:num_obs
+    obstacles = gobjects(num_obstacles,1);
+    for ii = 1:num_obstacles
         obstacles(ii) = circle(obs(ii,1),obs(ii,2),obs(ii,3));
     end
     agents = gobjects(num_agents,1);
@@ -74,7 +93,9 @@ figure()
     end
     axis equal
     grid on
-    legend([virtual_leader, agents(1),obstacles(1)],'Virtual Leader','Agents','Obstacle')
+    legend([virtual_leader, agents(1),obstacles(1)],...
+           'Virtual Leader','Agents','Obstacles',...
+           'location','northwest')
     
     % Actuall show the animation:
     for ii = 1:L
@@ -85,49 +106,8 @@ figure()
             set(agents(jj),'XData',r_vec(jj,1),'YData',r_vec(jj,2));
         end
         set(virtual_leader,'XData',vl_rv(1,ii),'YData',vl_rv(2,ii));
-        xlim([-100 100])
-        ylim([-100 100])
+        xlim([-WIDTH/2 1.5*WIDTH])
+        ylim([-WIDTH/2 1.5*WIDTH])
         drawnow
-        pause(.1)
+        pause(.01)
     end
-
-% Plot summary of the results:
-% figure()
-%     subplot(2,3,1)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,r(ii,:)); hold on
-%         end
-%         grid on
-%         title('R_x')
-%     subplot(2,3,4)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,r(ii+1,:)); hold on
-%         end
-%         grid on
-%         title('R_y')
-%         
-%     subplot(2,3,2)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,v(ii,:)); hold on
-%         end
-%         grid on
-%         title('V_x')
-%     subplot(2,3,5)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,v(ii+1,:)); hold on
-%         end
-%         grid on
-%         title('V_y')
-%         
-%     subplot(2,3,3)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,u(ii,:)); hold on
-%         end
-%         grid on
-%         title('U_x')
-%     subplot(2,3,6)
-%         for ii = 1:2:2*num_agents
-%             plot(tspan,u(ii+1,:)); hold on
-%         end
-%         grid on
-%         title('U_y')
