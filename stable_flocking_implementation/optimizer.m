@@ -7,7 +7,7 @@ addpath(genpath('tools'))
 k_ria = 20;  %(inter-agent position)
 k_via = .1;  %(inter-agent velocities)
 k_rvl = .25; %(virtual-leader position)
-k_vvl = .5;  %(virtual-leader velocity)
+k_vvl = .25;  %(virtual-leader velocity)
 k_obs = 0;   %(obstacle position)
 gains = [k_ria,k_via,k_rvl,k_vvl,k_obs];
 

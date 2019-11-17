@@ -6,7 +6,7 @@ function [ts,success] = simulate(gains,visualize,write_to_video)
     WIDTH = 150; %(half width of the field)
 
     % Number of agents/obstacles to simulate:
-    num_agents = 6;
+    num_agents = 4;
     num_obstacles = 1;
     
     % Distance settings:
@@ -31,7 +31,7 @@ function [ts,success] = simulate(gains,visualize,write_to_video)
     vl_rv = zeros(4,L);
 
     % Randomly place obstacles:
-    obs_radii = 10; % 5*rand(num_obstacles,1)+5;
+    obs_radii = 10*ones(num_obstacles,1); % 5*rand(num_obstacles,1)+5;
     obs = [WIDTH*rand(num_obstacles,1) WIDTH*rand(num_obstacles,1), obs_radii];
     d_react = d_react_obsr*obs(:,3); % react distance defined off of obstacle size
     d_min = d_min_obsr*obs(:,3);
@@ -55,15 +55,18 @@ function [ts,success] = simulate(gains,visualize,write_to_video)
         u(:,ii+1) = controller(r(:,ii+1),v(:,ii+1),vl_rv(:,ii+1)',obs,d0,d_react,gains);
 
         % Apply limitations on control input:
+        if ii == 100
+            disp('oof')
+        end
         u_vec = reshape(u(:,ii+1)',2,[])';
         [u_norm,u_norms] = normr(u_vec);
         u_vec(u_norms > max_u,:) = u_norm(u_norms > max_u,:)*max_u;
 
-        % Apply limit to max velocity:
-        v_vec = reshape(v(:,ii+1)',2,[])';
-        v_vec2 = v_vec + u_vec*dt;
-        [~,v2_norms] = normc(v_vec2);
-        u_vec(v2_norms > max_v) = 0;
+        % Apply limit to max velocity: TODO: FIX THIS
+%         v_vec = reshape(v(:,ii+1)',2,[])';
+%         v_vec2 = v_vec + u_vec*dt;
+%         [~,v2_norms] = normc(v_vec2);
+%         u_vec(v2_norms > max_v) = 0;
         u(:,ii+1) = reshape(u_vec',[],1);
         
         % Check if any agents got too close to obstacle:
@@ -71,12 +74,12 @@ function [ts,success] = simulate(gains,visualize,write_to_video)
         if obstacle_violation
             ts = inf;
             success = false;
-            disp('OOF')
+            disp('Run Failed (Obstacle Hit)')
             break 
         end
         
         % Check if settled:
-        settled = settle_check(r(:,ii),v(:,ii),vl_rv(:,ii));
+        settled = settle_check(r(:,ii),v(:,ii),vl_rv(:,ii)',d0);
         if settled
             success = true;
             break
