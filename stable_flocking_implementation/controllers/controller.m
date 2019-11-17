@@ -1,4 +1,4 @@
-function [u] = controller(r,v,vl,obs,d0,d_react,k_ria,k_via,k_rvl,k_vvl,k_obs)
+function [u] = controller(r,v,vl,obs,d0,d_react,gains)
     % Actual controller implementation:
     num_agents = length(r)/2;
     
@@ -27,7 +27,7 @@ function [u] = controller(r,v,vl,obs,d0,d_react,k_ria,k_via,k_rvl,k_vvl,k_obs)
         e_vvl = sum(v_vec(ii,:) - vl(3:4),1);
         
         % Apply gains:
-        u(ii,:) = k_ria*e_ria -k_via*e_via -k_rvl*e_rvl -k_vvl*e_vvl + k_obs*e_robs;
+        u(ii,:) = gains(1)*e_ria -gains(2)*e_via -gains(3)*e_rvl -gains(4)*e_vvl + gains(5)*e_robs;
                   
     end
     
