@@ -79,7 +79,8 @@ function [ts,success] = simulate(gains,visualize,write_to_video)
         end
         
         % Check if settled:
-        settled = settle_check(r(:,ii),v(:,ii),vl_rv(:,ii)',d0);
+        [settled,total_error] = settle_check(r(:,ii),v(:,ii),vl_rv(:,ii)',d0);
+        plot(ii,total_error,'.k'); hold on;
         if settled
             success = true;
             break
