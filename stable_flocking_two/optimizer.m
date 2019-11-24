@@ -5,23 +5,21 @@ addpath(genpath('tools'))
 
 % Initial Control gains:
 k_ria = 20;  %(inter-agent position)
-k_via = .26;  %(inter-agent velocities)
+k_via = .25;  %(inter-agent velocities)
 k_rvl = .5; %(virtual-leader position)
 k_vvl = .25;  %(virtual-leader velocity)
-k_obs = 10;   %(obstacle position)
-exp = 4;
-gains = [k_ria,k_via,k_rvl,k_vvl,k_obs]';
+k_obs = 50;   %(obstacle position)
+obs_dist = 40;
+gains = [k_ria,k_via,k_rvl,k_vvl,k_obs,obs_dist]';
 
 % Optimize:
 options = optimoptions('fmincon','FiniteDifferenceStepSize',1e-1);
-% A = [4 0 0 0 30/31.5];
-% b = 0;
 A =[];
 b = [];
 Aeq = [];
 beq = [];
-lb = [0 0 0 0 0];
-ub = [];
+lb = [0 0 0 0 0  20];
+ub = [100 100 100 100 100 100];
 x = fmincon(@simulate, gains, A,b,Aeq,beq,lb,ub,[], options);
 
 %%
@@ -34,7 +32,6 @@ num_steps = length(total_error);
 tfinal = num_steps*dt;
 tspan = dt:dt:tfinal;
 
-%%
 figure()
 plot(tspan,total_error); hold on
 xlabel('Time (sec)')
