@@ -16,7 +16,7 @@ max_v = 10; %(Max velocity allowed)
 max_u = 2; %(Max acceleration allowed)
 
 % Virtaul leader (position and velocity):
-vl = [-50 -50 3 3]; %(rx,ry,vx,vy)
+vl = [-50 -50 5 5]; %(rx,ry,vx,vy)
 
 %% Initialization:
 % Memory allocation:

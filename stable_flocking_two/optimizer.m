@@ -8,7 +8,7 @@ k_ria = 20;  %(inter-agent position)
 k_via = .25;  %(inter-agent velocities)
 k_rvl = .5; %(virtual-leader position)
 k_vvl = .25;  %(virtual-leader velocity)
-k_obs = 50;   %(obstacle position)
+k_obs = 30;   %(obstacle position)
 obs_dist = 40;
 gains = [k_ria,k_via,k_rvl,k_vvl,k_obs,obs_dist]';
 
@@ -19,7 +19,10 @@ b = [];
 Aeq = [];
 beq = [];
 lb = [0 0 0 0 0  20];
-ub = [100 100 100 100 100 100];
+baseline = 1;
+FOV = 50;
+resH = 500;
+ub = [100 100 100 100 100 (baseline/2)/tand(((FOV/2)/(resH/2))/2)];
 x = fmincon(@simulate, gains, A,b,Aeq,beq,lb,ub,[], options);
 
 %%
