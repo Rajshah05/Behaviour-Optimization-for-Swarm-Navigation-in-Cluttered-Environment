@@ -17,7 +17,7 @@ function [u] = controller(r,v,vl,obs,d0,d_react,gains)
         e_robs = [0,0];
         for jj = 1:size(obs,1)
             [obs_dirs,obs_d] = normr(r_vec - obs(jj,1:2));
-            e_robs = e_robs + obs_dirs(ii,:)*(d_react(jj)/obs_d(ii))^2;
+            e_robs = e_robs + obs_dirs(ii,:)*(d_react(jj)/obs_d(ii))^4;
         end
         % Formulate error signals:
         [ia_dirs,ia_d] = normr(r_vec(ii,:) - r_vec([1:ii-1,ii+1:end],:));

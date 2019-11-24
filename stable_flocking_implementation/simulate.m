@@ -1,49 +1,12 @@
-function [ts,total_error] = simulate(gains)
-    %% Setup:
-    disp(gains)
-    rng(1); %(random seed for repeatability)
-    dt = 1e-3;
-    tspan = 0:dt:3000;
-
-    % Number of agents/obstacles to simulate:
-    num_agents = 4;
-    num_obstacles = 1;
-    
-    % Distance settings:
-    d0 = 20; % Desired distance from virtual leader
-    d_react_obsr = 1.5; %Reaction distance (in terms of obstacle radius)
-    d_min_obsr = 1; %Minimum allowable distance to obstalce (in terms of obstacle radius)
-    % IF THE AGENT GOES BELOW THE MINIMUM DISTANCE, THE RUN FAILS.
-    
-    % Agent limitations:
-    max_v = 1; %(Max velocity allowed)
-    max_u = 1; %(Max acceleration allowed)
-    
-    % Virtaul leader (position and velocity):
-    vl = [-70 -70 1 1]; %(rx,ry,vx,vy)
-    
-    %% Initialization:
-    % Memory allocation:
-    L = length(tspan);
-    u = zeros(2*num_agents,L);
-    r = zeros(2*num_agents,L);
-    v = zeros(2*num_agents,L);
-    vl_rv = zeros(4,L);
-
-    % Randomly place obstacles:
-    obs_radii = 20*ones(num_obstacles,1); % 5*rand(num_obstacles,1)+5;
-    obs = [20 20, obs_radii];
-    d_react = d_react_obsr*obs(:,3); % react distance defined off of obstacle size
-    d_min = d_min_obsr*obs(:,3);
-
-    % Randomly place the agents:
-    r(:,1) = repmat(reshape(vl(1:2),[],1),num_agents,1) + randn(2*num_agents,1);
-    v(:,1) = 1*randn(2*num_agents,1);
-    vl_rv(:,1) = vl';
+function [ts,total_error,broke,ii,vl_rv,r,u] = simulate(gains)
+    fprintf('gains: %f %f %f %f %f\n', gains)
+    init
     
     %% Run simulation:
     ts = 0;
     total_error = zeros(L-1,1);
+    formation_start = false;
+    settle_count = 0;
     for ii = 1:L-1
         % Propagate the dynamics:
         X_out = RK4(@equations_of_motion,dt,[r(:,ii);v(:,ii)],u(:,ii));
@@ -59,29 +22,50 @@ function [ts,total_error] = simulate(gains)
         [u_norm,u_norms] = normr(u_vec);
         u_vec(u_norms > max_u,:) = u_norm(u_norms > max_u,:)*max_u;
 
-        % Apply limit to max velocity: TODO: FIX THIS
+        % Apply limit to max velocity:
 %         v_vec = reshape(v(:,ii+1)',2,[])';
 %         v_vec2 = v_vec + u_vec*dt;
 %         [~,v2_norms] = normc(v_vec2);
-%         u_vec(v2_norms > max_v) = 0;
+%         if any(v2_norms > max_v)
+%             u_vec = u_vec -v(v2_norms < max_v)/dt;
+%         end
         u(:,ii+1) = reshape(u_vec',[],1);
         
         % Check if any agents got too close to obstacle:
         obstacle_violation = obstacle_violation_check(r(:,ii),obs,d_min);
         if obstacle_violation
-            ts = 1e5;
+            ts = 1e10;
             disp('Run Failed (Obstacle Hit)')
             break 
         end
         
         % Check if settled:
+        obs2vl = vl_rv(1:2,ii)' - obs(1:2);
+        theta = acos(dot(obs2vl,vl_rv(3:4,ii)')/(norm(vl_rv(3:4,ii)')*norm(obs2vl)));
         [settled,total_error(ii)] = settle_check(v(:,ii),vl_rv(:,ii)');
-        if settled
-            fprintf('settled: %f (sec)\n',ii*dt)
-            break
+        if theta < pi/2 % Passed the obstacle
+            if settled
+                break
+            end
         end
         
-        % Increase settling time:
-        ts = ts+dt;
+        if ~formation_start
+            if settled
+                if settle_count > 60
+                    formation_start = true;
+                end
+                settle_count = settle_count+1;
+            else
+                settle_count = 0;
+            end
+        end
+        
+        if formation_start && ~settled
+            if ts == 0
+                broke = ii*dt;
+            end
+            ts = ts+dt;
+        end
     end
+    fprintf('settled: %f (sec)\n\n',ts)
 end
