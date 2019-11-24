@@ -6,13 +6,13 @@
 \graphicspath{ {figs/} }
 
 % Document definitions:
-\setlength{\oddsidemargin}{1in}
+\setlength{\oddsidemargin}{0.25in}
 \setlength{\evensidemargin}{1in}
 \setlength{\marginparwidth}{0.0in}
 \setlength{\topmargin}{0.5in}
 \setlength{\headheight}{0in}
 \setlength{\headsep}{0in}
-\setlength{\textwidth}{4.5in}
+\setlength{\textwidth}{6in}
 \setlength{\textheight}{7.5in}
 \setlength{\parindent}{0.25in}
 \setlength{\parskip}{0.0in}
@@ -44,10 +44,16 @@ University at Buffalo
 Buffalo, New York, 14261
 }}
 \end{center}
+
+\begin{abstract}
+
 UAVs are used in a wide range of applications such as land surveys, search and rescue operations, remote sensing, disaster monitoring to and security applications. A group of UAVs greatly enhances the performance and robustness in fulfilling difficult tasks.  Multiple agents increase the chances of completing a mission as other agents can continue the mission even if one or more agents fail.  Many of these applications require maintaining a desired formation.  Therefore it is essential that any deviations from formation keeping (such as obstacle avoidance) be kept brief.  
 
 Our work is aimed towards optimizing settling time in formation control of UAVs swarm navigation in the presence of obstacles.  Decreased settling time in response to obstacle avoidance means less interruption to nominal operations.  This can lead to increased performance or increased quality of data collection, depending on the objective of the drone swarm. 
 
+\end{abstract}
+
+\section{Introduction}
 In \textit{Flocks, Herds, and Schools: A Distributed Behavioral Model } (Reynolds), A decentralized flock motion scheme is implented to simulate the motion of an entire flock.  This is accomplished by having each agent follow three simple rules.  \textbf{Avoidance:} avoid collisions with nearby flockmates.  \textbf{Velocity Matching:} attempt to match velocity with nearby flockmates.  \textbf{Flock Centering:} attempt to stay close to nearby flockmates.
 
 In \textit{Stable Flocking of Mobile Agents} (Tanner), a simple methodology for stable flocking configurations was introduced, utilizing potential functions for mediating inter-agent formation keeping maneuvers.  While this method proved powerful for both acquiring and maintaining a stable flocking formation, it did not consider obstacles in its formulation.
@@ -64,15 +70,23 @@ We will also be assuming perfect state knowledge of all the agents, and perfect 
 
 In order to accomplish this, we will be defining an objective function for the settling time, with respect to the control gains and the reaction distance from the obstacle.  The first constraint is that the vehicles must not collide with either each other or with the obstacle.  Secondly, the vehicles will have a maximum allowable acceleration (applied actuation), and will have a maximum allowable traveling velocity.
 
-The simulation for this project will primarily be done in MATLAB.  Preliminary work has already been started implementing the papers we previously discussed so we can develop a better working knowledge of the problem.  As the project progresses, we may switch to a higher fidelity model (such as 3d space with full drone dynamics), if time allows.
 
-The tasks of this project will be distributed among the group members.  All three members will be involved with both the formulation of the optimization problem, as well as the writing of the final report.  The project git repository, as well as the main architecture of the code, will be maintained by Chris.  Raj will focus on the implementation of simulation models, as well as continued literature review.  Supreet will be tasked primarily with designing the overall problem to be optimized, and the implementation of that into MATLAB.
+\section{Simulation Overview}
+\subsection{Drone Parameters}
 
-\begin{figure}[H]
-  \makebox[\textwidth][c]{\includegraphics[width=1.2\textwidth]{MAE550_Diagram.png}}%
-  \caption{Diagram of problem interactions.  \textbf{Left:} All interaction forces which define the control input.  Blue forces are agent-obstacle interactions, purple are agent-virtual leader interactions, and green are inter-agent interactions.  \textbf{Right:} Shows more clearly how the interaction forces are modeled as spring forces.  (Source: \textit{A Lightweight Formation Control Methodology for a Swarm of Non-Holonomic Vehicles})}
-  \label{fig:key}
-\end{figure}
-\end{document}
+\subsection{Controller Design}
+
+\subsection{Potential Fields}
+
+\section{Constraints on Dynamics}
+
+\section{Optimization}
+
+\subsection{Design Variables}
+
+\subsection{Constraints}
+
+\section{Results}
+
 \end{document}
 
