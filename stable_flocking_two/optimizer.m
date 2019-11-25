@@ -14,6 +14,8 @@ gains = [k_ria,k_via,k_rvl,k_vvl,k_obs,obs_dist]';
 
 % Optimize:
 options = optimoptions('fmincon','FiniteDifferenceStepSize',1e-1);
+% A = [4 0 0 0 30/31.5];
+% b = 0;
 A =[];
 b = [];
 Aeq = [];
