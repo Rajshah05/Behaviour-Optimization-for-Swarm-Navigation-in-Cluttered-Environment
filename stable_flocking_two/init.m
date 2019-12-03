@@ -8,6 +8,7 @@ num_agents = 4;
 % Distance settings:
 d0 = 1.5; % Desired distance from virtual leader
 d_react_obsr = 1.5; %Reaction distance (in terms of obstacle radius)
+drone_width = 2;
 d_min_obsr = 1; %Minimum allowable distance to obstalce (in terms of obstacle radius)
 % IF THE AGENT GOES BELOW THE MINIMUM DISTANCE, THE RUN FAILS.
 

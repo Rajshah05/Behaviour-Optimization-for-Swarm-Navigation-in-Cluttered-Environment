@@ -13,6 +13,9 @@ function [ts,total_error,broke,ii,vl_rv,r,u] = simulate(gains_avoidance)
     k_obs = 0;   %(obstacle position)
     gains_stable = [k_ria,k_via,k_rvl,k_vvl,k_obs]';
     formation_start = true;
+    
+    load OUT
+    min_d = inf;
     for ii = 1:L-1
         % Propagate the dynamics:
         X_out = RK4(@equations_of_motion,dt,[r(:,ii);v(:,ii)],u(:,ii));
@@ -24,6 +27,9 @@ function [ts,total_error,broke,ii,vl_rv,r,u] = simulate(gains_avoidance)
         [~,vl_obs_d] = normr(vl_rv(1:2,ii+1)' - obs(1:2));
         if vl_obs_d < gains_avoidance(end) || ~formation_start
             gains = gains_avoidance(1:end-1);
+            gains(2) = gains(2)/10;
+            gains(3) = gains(3)/100;
+            gains(4) = gains(4)/10;
             formation_start = false;
         else
             gains = gains_stable;
@@ -34,15 +40,24 @@ function [ts,total_error,broke,ii,vl_rv,r,u] = simulate(gains_avoidance)
         u_vec = reshape(u(:,ii+1)',2,[])';
         [u_norm,u_norms] = normr(u_vec);
         u_vec(u_norms > max_u,:) = u_norm(u_norms > max_u,:)*max_u;
-
-        % Apply limit to max velocity:
-%         v_vec = reshape(v(:,ii+1)',2,[])';
-%         v_vec2 = v_vec + u_vec*dt;
-%         [~,v2_norms] = normc(v_vec2);
-%         if any(v2_norms > max_v)
-%             u_vec = u_vec -v(v2_norms < max_v)/dt;
-%         end
         u(:,ii+1) = reshape(u_vec',[],1);
+        
+        % Check if agents hit each other:
+        r_vec = reshape(r(:,ii)',2,[])';
+        ia_d = [];
+        for jj = 1:num_agents-1
+            [~,ia_d_temp] = normr(r_vec(jj,:) - r_vec(jj+1:end,:));
+            ia_d = [ia_d; ia_d_temp];
+        end
+        if any(ia_d < drone_width)
+            ts = 1e10;
+            disp('Run Failed (Agent Collision)')
+            break
+        end
+        
+        if min(ia_d) < min_d
+            min_d = min(ia_d);
+        end
         
         % Check if any agents got too close to obstacle:
         obstacle_violation = obstacle_violation_check(r(:,ii),obs,d_min);
@@ -69,5 +84,14 @@ function [ts,total_error,broke,ii,vl_rv,r,u] = simulate(gains_avoidance)
             ts = ts+dt;
         end
     end
+    
+    if ts == 1e10
+        ts_history = [ts_history; nan];
+        min_dist = [min_dist; nan];
+    else
+        ts_history = [ts_history; ts];
+        min_dist = [min_dist; min_d];
+    end
+    save OUT ts_history min_dist
     fprintf('settled: %f (sec)\n\n',ts)
 end
